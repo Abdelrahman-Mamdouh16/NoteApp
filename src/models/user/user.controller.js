@@ -1,4 +1,4 @@
-import  jwt  from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { User } from "../../../DB/modules/user.module.js";
 import bcrypt from "bcryptjs";
 
@@ -9,12 +9,7 @@ export const getAllUsers = async (req, res, next) => {
     success: true,
     message: "Users retrieved successfully",
     data: users,
-  });
-  // } catch (err) {
-  //   const error = err.message;
-  //   error.statusCode = 500;
-  //   return next(error);
-  // }
+  }); 
 };
 export const registerUser = async (req, res, next) => {
   // try {
@@ -41,17 +36,15 @@ export const registerUser = async (req, res, next) => {
     error.statusCode = 400;
     return next(error);
   }
-  const passwordHashing = await bcrypt.hash(password, 8);
+  const passwordHashing = await bcrypt.hash(
+    password,
+    Number(process.env.passwordSaltRounds),
+  );
   await User.create({ email, age, password: passwordHashing });
   return res.status(201).json({
     success: true,
     message: "User registered successfully",
   });
-  // } catch (err) {
-  //   const error = err.message;
-  //   error.statusCode = 500;
-  //   return next(error);
-  // }
 };
 export const loginUser = async (req, res, next) => {
   // try {
@@ -61,9 +54,7 @@ export const loginUser = async (req, res, next) => {
     error.statusCode = 400;
     return next(error);
   }
-  const findUser = await User.findOne({ email });
-  // console.log(findUser);
-
+  const findUser = await User.findOne({ email }, { notesId: 0 });
   if (!findUser) {
     const error = new Error("Invalid email or password");
     error.statusCode = 401;

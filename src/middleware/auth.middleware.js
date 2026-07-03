@@ -12,7 +12,7 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
   }
 
   const token = authHeader.split(" ")[1];
-
+ 
   const payload = jwt.verify(token, process.env.JWT_SECRET);
 
   const currentUser = await User.findById(payload.id);
