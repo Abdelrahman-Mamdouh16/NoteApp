@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { DBconnection } from "./DB/connection.js";
-import UserRouter from "./models/user/user.router.js";
-import NoteRouter from "./models/note/note.router.js";
+import UserRouter from "./src/models/user/user.router.js";
+import NoteRouter from "./src/models/note/note.router.js";
 import dotenv from "dotenv";
 const app = express();
 dotenv.config();
@@ -31,9 +31,13 @@ app.all("/{*splat}", (req, res, next) => {
 
 app.use((error, req, res, next) => {
   // console.error(error);
+
   return res.status(error.statusCode || 500).json({
     success: false,
-    message: error.message,
+    message:
+      error.message === "jwt expired"
+        ? "Token expired, please login again"
+        : error.message,
     stack: process.env.NODE_ENV === "production" ? "" : error.stack,
   });
 });
