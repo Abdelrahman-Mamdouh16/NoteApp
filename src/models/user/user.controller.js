@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { User } from "../../../DB/modules/user.module.js";
 import bcrypt from "bcryptjs";
+import { Token, Token } from "../../../DB/modules/token.module.js";
 
 export const getAllUsers = async (req, res, next) => {
   // try {
@@ -9,7 +10,7 @@ export const getAllUsers = async (req, res, next) => {
     success: true,
     message: "Users retrieved successfully",
     data: users,
-  }); 
+  });
 };
 export const registerUser = async (req, res, next) => {
   // try {
@@ -75,10 +76,28 @@ export const loginUser = async (req, res, next) => {
     process.env.JWT_SECRET,
     { expiresIn: "1w" },
   );
-
+  await Token.create({
+    token,
+    userId: findUser._id,
+    agent: req.headers["user-agent"],
+  });
   return res.status(200).json({
     success: true,
     message: "User logged in successfully",
     data: { userData, token },
+  });
+};
+export const logoutUser = async (req, res, next) => {
+  const token = req.headers.authorization.split(" ")[1];
+
+  const tokenDoc = await Token.findOneAndUpdate({ token }, { isValid: false });
+  if (!tokenDoc) {
+    const error = new Error("Token not found");
+    error.statusCode = 404;
+    return next(error);
+  }
+  return res.status(200).json({
+    success: true,
+    message: "User logged out successfully",
   });
 };

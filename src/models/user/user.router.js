@@ -10,12 +10,15 @@ UserRouter.get(
   asyncHandler(UserController.getAllUsers),
 );
 
-UserRouter.post(
-  "/register",
-  asyncHandler(UserController.registerUser),
-);
+UserRouter.post("/register", asyncHandler(UserController.registerUser));
 
 UserRouter.post("/login", asyncHandler(UserController.loginUser));
+
+UserRouter.post(
+  "/logout",
+  isAuthenticated,
+  asyncHandler(UserController.logoutUser),
+);
 
 // UserRouter.patch("/updatePassword", asyncHandler(UserController.updateUserPassword));
 
