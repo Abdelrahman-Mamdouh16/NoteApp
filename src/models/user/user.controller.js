@@ -14,9 +14,9 @@ export const getAllUsers = async (req, res, next) => {
 };
 export const registerUser = async (req, res, next) => {
   // try {
-  const { email, age, password, confirmPassword } = req.body;
+  const { email, age, password, confirmPassword,name } = req.body;
 
-  if (!email || !age || !password || !confirmPassword) {
+  if (!email || !age || !password || !confirmPassword || !name) {
     return next(new Error("All fields are required", { cause: 400 }));
   }
   if (password !== confirmPassword) {
@@ -33,7 +33,7 @@ export const registerUser = async (req, res, next) => {
     password,
     Number(process.env.passwordSaltRounds),
   );
-  await User.create({ email, age, password: passwordHashing });
+  await User.create({ email, age, password: passwordHashing, name });
   return res.status(201).json({
     success: true,
     message: "User registered successfully",
