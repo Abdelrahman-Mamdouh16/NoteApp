@@ -7,35 +7,27 @@ export const isAuthenticated = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    const error = new Error("Authorization header missing or invalid");
-    error.statusCode = 401;
-    return next(error);
+    return next(new Error("Authorization header missing or invalid", { cause: 401 }));
   }
 
   const token = authHeader.split(" ")[1];
   const tokenDoc = await Token.findOne({ token, isValid: true });
 
   if (!tokenDoc) {
-    const error = new Error("Invalid or expired token");
-    error.statusCode = 401;
-    return next(error);
+    return next(new Error("Invalid or expired token", { cause: 401 }));
   }
   if (new Date() >= tokenDoc.expiresAt) {
     tokenDoc.isValid = false;
     await tokenDoc.save();
 
-    const error = new Error("Token expired");
-    error.statusCode = 401;
-    return next(error);
+    return next(new Error("Token expired", { cause: 401 }));
   }
   const payload = jwt.verify(token, process.env.JWT_SECRET);
 
   const currentUser = await User.findById(payload.id);
 
   if (!currentUser) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    return next(error);
+    return next(new Error("User not found", { cause: 404 }));
   }
 
   req.user = currentUser;

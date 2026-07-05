@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { User } from "../../../DB/modules/user.module.js";
 import bcrypt from "bcryptjs";
-import { Token, Token } from "../../../DB/modules/token.module.js";
+import { Token } from "../../../DB/modules/token.module.js";
 
 export const getAllUsers = async (req, res, next) => {
   // try {
@@ -17,25 +17,17 @@ export const registerUser = async (req, res, next) => {
   const { email, age, password, confirmPassword } = req.body;
 
   if (!email || !age || !password || !confirmPassword) {
-    const error = new Error("All fields are required");
-    error.statusCode = 400;
-    return next(error);
+    return next(new Error("All fields are required", { cause: 400 }));
   }
   if (password !== confirmPassword) {
-    const error = new Error("Passwords do not match");
-    error.statusCode = 400;
-    return next(error);
+    return next(new Error("Passwords do not match", { cause: 400 }));
   }
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    const error = new Error("User already exists");
-    error.statusCode = 400;
-    return next(error);
+    return next(new Error("User already exists", { cause: 400 }));
   }
   if (age < 18 || age > 100) {
-    const error = new Error("Age must be between 18 and 100");
-    error.statusCode = 400;
-    return next(error);
+    return next(new Error("Age must be between 18 and 100", { cause: 400 }));
   }
   const passwordHashing = await bcrypt.hash(
     password,
@@ -51,24 +43,18 @@ export const loginUser = async (req, res, next) => {
   // try {
   const { email, password: passwordBody } = req.body;
   if (!email || !passwordBody) {
-    const error = new Error("Email and password are required");
-    error.statusCode = 400;
-    return next(error);
+    return next(new Error("Email and password are required", { cause: 400 }));
   }
   const findUser = await User.findOne({ email }, { notesId: 0 });
   if (!findUser) {
-    const error = new Error("Invalid email or password");
-    error.statusCode = 401;
-    return next(error);
+    return next(new Error("Invalid email or password", { cause: 401 }));
   }
   const isPasswordValid = await bcrypt.compareSync(
     passwordBody,
     findUser.password,
   );
   if (!isPasswordValid) {
-    const error = new Error("Invalid email or password");
-    error.statusCode = 401;
-    return next(error);
+    return next(new Error("Invalid email or password", { cause: 401 }));
   }
   const { password, ...userData } = findUser.toObject();
   const token = jwt.sign(
@@ -92,9 +78,7 @@ export const logoutUser = async (req, res, next) => {
 
   const tokenDoc = await Token.findOneAndUpdate({ token }, { isValid: false });
   if (!tokenDoc) {
-    const error = new Error("Token not found");
-    error.statusCode = 404;
-    return next(error);
+    return next(new Error("Token not found", { cause: 404 }));
   }
   return res.status(200).json({
     success: true,

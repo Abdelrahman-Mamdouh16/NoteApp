@@ -5,9 +5,9 @@ export const createNote = async (req, res, next) => {
   const { content, isComplete } = req.body;
   const currentUser = req.user;
   if (content === undefined || isComplete === undefined) {
-    const error = new Error("content and isComplete are required");
-    error.statusCode = 400;
-    return next(error);
+    return next(
+      new Error("content and isComplete are required", { cause: 400 }),
+    );
   }
   const notes = await Note.create({
     content,
@@ -35,24 +35,20 @@ export const getNoteById = async (req, res, next) => {
   const { id } = req.params;
   const note = await Note.findById(id).populate("userId", "email age -_id");
   if (!note) {
-    const error = new Error("Note not found");
-    error.statusCode = 404;
-    return next(error);
+    return next(new Error("Note not found", { cause: 404 }));
   }
 
   const currentUser = req.user;
   const isNoteBelongsToUser = note.userId.equals(currentUser._id);
 
   if (!isNoteBelongsToUser) {
-    const error = new Error("Note does not belong to the specified user");
-    error.statusCode = 403;
-    return next(error);
+    return next(
+      new Error("Note does not belong to the specified user", { cause: 403 }),
+    );
   }
 
   if (!note) {
-    const error = new Error("Note not found");
-    error.statusCode = 404;
-    return next(error);
+    return next(new Error("Note not found", { cause: 404 }));
   }
 
   return res.status(200).json({
@@ -65,9 +61,9 @@ export const updateNote = async (req, res, next) => {
   const { id } = req.params;
   const { content, isComplete } = req.body;
   if (content === undefined || isComplete === undefined) {
-    const error = new Error("content and isComplete are required");
-    error.statusCode = 400;
-    return next(error);
+    return next(
+      new Error("content and isComplete are required", { cause: 400 }),
+    );
   }
   if (content !== undefined) {
     note.content = content;
@@ -79,16 +75,14 @@ export const updateNote = async (req, res, next) => {
   const userId = req.user._id;
   const note = await Note.findById(id);
   if (!note) {
-    const error = new Error("Note not found");
-    error.statusCode = 404;
-    return next(error);
+    return next(new Error("Note not found", { cause: 404 }));
   }
 
   const isNoteBelongsToUser = note.userId.equals(req.user._id);
   if (!isNoteBelongsToUser) {
-    const error = new Error("Note does not belong to the specified user");
-    error.statusCode = 403;
-    return next(error);
+    return next(
+      new Error("Note does not belong to the specified user", { cause: 403 }),
+    );
   }
 
   note.content = content;
@@ -106,15 +100,13 @@ export const deleteNote = async (req, res, next) => {
   const userId = req.user._id;
   const note = await Note.findById(id);
   if (!note) {
-    const error = new Error("Note not found");
-    error.statusCode = 404;
-    return next(error);
+    return next(new Error("Note not found", { cause: 404 }));
   }
   const isNoteBelongsToUser = note.userId.equals(req.user._id);
   if (!isNoteBelongsToUser) {
-    const error = new Error("Note does not belong to the specified user");
-    error.statusCode = 403;
-    return next(error);
+    return next(
+      new Error("Note does not belong to the specified user", { cause: 403 }),
+    );
   }
   await note.deleteOne();
 
