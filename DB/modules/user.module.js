@@ -33,6 +33,14 @@ const userSchema = new Schema(
       minlength: 5,
       maxlength: 20,
     },
+    isConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+    forgotCode: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

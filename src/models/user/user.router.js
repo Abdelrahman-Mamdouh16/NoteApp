@@ -30,6 +30,8 @@ UserRouter.post(
   asyncHandler(UserController.logoutUser),
 );
 
+UserRouter.post("/confirm-email?email", asyncHandler(UserController.confirmEmail));
+
 // UserRouter.patch("/updatePassword", asyncHandler(UserController.updateUserPassword));
 
 export default UserRouter;

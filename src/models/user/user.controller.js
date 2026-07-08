@@ -2,6 +2,11 @@ import jwt from "jsonwebtoken";
 import { User } from "../../../DB/modules/user.module.js";
 import bcrypt from "bcryptjs";
 import { Token } from "../../../DB/modules/token.module.js";
+import { render } from "@react-email/render";
+import React from "react";
+import { UserNotFoundEmail } from "../../utils/EmailSystem/partials/UserNotFoundEmail.js";
+import { emailHTML } from "../../utils/EmailSystem/partials/emailHTML.js";
+import { mailSystem } from "../../utils/EmailSystem/emailSystem.js";
 
 export const getAllUsers = async (req, res, next) => {
   // try {
@@ -14,7 +19,7 @@ export const getAllUsers = async (req, res, next) => {
 };
 export const registerUser = async (req, res, next) => {
   // try {
-  const { email, age, password, confirmPassword,name } = req.body;
+  const { email, age, password, confirmPassword, name } = req.body;
 
   if (!email || !age || !password || !confirmPassword || !name) {
     return next(new Error("All fields are required", { cause: 400 }));
@@ -34,9 +39,46 @@ export const registerUser = async (req, res, next) => {
     Number(process.env.passwordSaltRounds),
   );
   await User.create({ email, age, password: passwordHashing, name });
+  const confirmUrl = `http://localhost:3000/confirm-email?email=${email}`;
+  const html = emailHTML(confirmUrl);
+  await mailSystem({
+    to: email,
+    subject: "Confirm Your Email",
+    text: `Please confirm your email`,
+    html,
+  });
+
   return res.status(201).json({
     success: true,
     message: "User registered successfully",
+  });
+};
+export const confirmEmail = async (req, res, next) => {
+  // try {
+  const { email } = req.query;
+  if (!email) {
+    return next(new Error("Email are required", { cause: 400 }));
+  }
+  const findUser = await User.findOne({ email }, { notesId: 0 });
+  if (!findUser) {
+    const html = UserNotFoundEmail;
+
+    await mailSystem({
+      to: email,
+      subject: "Account Not Found",
+      text: `No account was found for this email. Create one here: ${registerUrl}`,
+      html,
+    });
+  }
+  await mailSystem({
+    to: email,
+    subject: "confirmed Email ",
+    text: `Your email has been confirmed successfully.`,
+  });
+  await User.findOneAndUpdate({ email }, { isConfirmed: true });
+  return res.status(200).json({
+    success: true,
+    message: "Email confirmed successfully",
   });
 };
 export const loginUser = async (req, res, next) => {
@@ -73,6 +115,7 @@ export const loginUser = async (req, res, next) => {
     data: { userData, token },
   });
 };
+
 export const logoutUser = async (req, res, next) => {
   const token = req.headers.authorization.split(" ")[1];
 
